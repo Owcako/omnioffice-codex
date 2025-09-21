@@ -1,0 +1,9 @@
+{
+    "tabWidth": 4,
+    "trailingComma": "none",
+    "bracketSpacing": false,
+    "arrowParens": "avoid",
+    "vueIndentScriptAndStyle": true,
+    "endOfLine": "auto",
+    "singleAttributePerLine": true
+}

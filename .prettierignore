@@ -1,0 +1,4 @@
+# Ignore artifacts:
+.claude
+dev
+node_modules
