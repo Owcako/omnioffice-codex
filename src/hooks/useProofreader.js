@@ -1,19 +1,13 @@
 import {useCallback, useState} from "react";
 import {useToast} from "@chakra-ui/react";
 import {requestProofreading} from "../services/proofreader.service";
-import type {ProofreadIssue} from "../interfaces/proofreader";
 
-interface UseProofreaderResult {
-    runProofread(text: string): Promise<ProofreadIssue[]>;
-    isLoading: boolean;
-}
-
-export function useProofreader(): UseProofreaderResult {
+export function useProofreader() {
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
 
     const runProofread = useCallback(
-        async (text: string) => {
+        async text => {
             setIsLoading(true);
             try {
                 const issues = await requestProofreading(text);

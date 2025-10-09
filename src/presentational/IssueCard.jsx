@@ -1,14 +1,6 @@
 import {Box, Button, HStack, Heading, Text, VStack} from "@chakra-ui/react";
-import type {ProofreadIssue} from "../interfaces/proofreader";
 
-interface IssueCardProps {
-    issue: ProofreadIssue;
-    onAccept(): void;
-    onDismiss(): void;
-    isProcessing: boolean;
-}
-
-function IssueCard({issue, onAccept, onDismiss, isProcessing}: IssueCardProps) {
+function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
     return (
         <Box
             bg="white"

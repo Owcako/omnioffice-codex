@@ -1,19 +1,6 @@
 import {Box, Button, Text, VStack} from "@chakra-ui/react";
-import type {ReactNode} from "react";
 
-interface CommandPanelProps {
-    onProofread(): void;
-    disabled?: boolean;
-    isLoading?: boolean;
-    helperText?: ReactNode;
-}
-
-function CommandPanel({
-    onProofread,
-    disabled,
-    isLoading,
-    helperText
-}: CommandPanelProps) {
+function CommandPanel({onProofread, disabled, isLoading, helperText}) {
     return (
         <VStack
             align="stretch"

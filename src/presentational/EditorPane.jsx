@@ -1,19 +1,6 @@
 import {Box} from "@chakra-ui/react";
 import {useMemo} from "react";
-import HighlightWithinTextarea, {
-    type Highlight
-} from "react-highlight-within-textarea";
-import type {Editor} from "draft-js";
-import type {MutableRefObject} from "react";
-import type {TextRange} from "../utils/textRange";
-
-interface EditorPaneProps {
-    value: string;
-    placeholder: string;
-    onChange(next: string): void;
-    highlightRanges: TextRange[];
-    editorRef: MutableRefObject<Editor | null>;
-}
+import HighlightWithinTextarea from "react-highlight-within-textarea";
 
 function EditorPane({
     value,
@@ -21,8 +8,8 @@ function EditorPane({
     onChange,
     highlightRanges,
     editorRef
-}: EditorPaneProps) {
-    const highlightConfig = useMemo<Highlight>(() => {
+}) {
+    const highlightConfig = useMemo(() => {
         if (!highlightRanges.length) {
             return [];
         }
@@ -47,8 +34,7 @@ function EditorPane({
                 onChange={nextValue => {
                     onChange(nextValue);
                 }}
-                /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-                {...({className: "proofreader-editor"} as any)}
+                className="proofreader-editor"
             />
         </Box>
     );

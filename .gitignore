@@ -23,14 +23,3 @@ backend/.env
 *.njsproj
 *.sln
 *.sw?
-
-# Codex
-AGENTS.md
-Brief.md
-PRD.md
-Codex
-
-# Misc
-.vscode
-.prettier*
-eslint.config.ts

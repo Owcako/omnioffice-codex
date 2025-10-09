@@ -1,12 +1,4 @@
-export interface TextRange {
-    start: number;
-    end: number;
-}
-
-export function findMatchRange(
-    haystack: string,
-    needle: string
-): TextRange | null {
+export function findMatchRange(haystack, needle) {
     if (!needle.trim()) {
         return null;
     }

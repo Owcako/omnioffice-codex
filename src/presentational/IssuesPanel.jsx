@@ -1,20 +1,7 @@
 import {Box, Stack, Text} from "@chakra-ui/react";
-import type {ProofreadIssue} from "../interfaces/proofreader";
 import IssueCard from "./IssueCard";
 
-interface IssuesPanelProps {
-    issues: ProofreadIssue[];
-    onAccept(issueId: string): void;
-    onDismiss(issueId: string): void;
-    isAcceptingId: string | null;
-}
-
-function IssuesPanel({
-    issues,
-    onAccept,
-    onDismiss,
-    isAcceptingId
-}: IssuesPanelProps) {
+function IssuesPanel({issues, onAccept, onDismiss, isAcceptingId}) {
     return (
         <Box
             w="100%"

@@ -1,24 +1,22 @@
 import {useCallback, useMemo, useRef, useState} from "react";
 import {useToast} from "@chakra-ui/react";
-import type {Editor} from "draft-js";
 import AppLayout from "../presentational/AppLayout";
 import CommandPanel from "../presentational/CommandPanel";
 import EditorPane from "../presentational/EditorPane";
 import IssuesPanel from "../presentational/IssuesPanel";
 import {useProofreader} from "../hooks/useProofreader";
-import type {ProofreadIssue} from "../interfaces/proofreader";
 import {buildHighlightRanges} from "../utils/highlights";
 import {replaceFirstOccurrence} from "../utils/textReplacement";
 
 function ProofreaderAppContainer() {
     const [essayText, setEssayText] = useState("");
-    const [issues, setIssues] = useState<ProofreadIssue[]>([]);
-    const [isAcceptingId, setIsAcceptingId] = useState<string | null>(null);
-    const [lastRunAt, setLastRunAt] = useState<Date | null>(null);
+    const [issues, setIssues] = useState([]);
+    const [isAcceptingId, setIsAcceptingId] = useState(null);
+    const [lastRunAt, setLastRunAt] = useState(null);
 
     const {runProofread, isLoading} = useProofreader();
     const toast = useToast();
-    const editorRef = useRef<Editor | null>(null);
+    const editorRef = useRef(null);
 
     const highlightRanges = useMemo(
         () => buildHighlightRanges(essayText, issues),
@@ -26,7 +24,7 @@ function ProofreaderAppContainer() {
     );
 
     const handleTextChange = useCallback(
-        (nextText: string) => {
+        nextText => {
             if (nextText === essayText) {
                 return;
             }
@@ -78,7 +76,7 @@ function ProofreaderAppContainer() {
     }, [essayText, focusEditor, runProofread, toast]);
 
     const handleAccept = useCallback(
-        (issueId: string) => {
+        issueId => {
             const targetIssue = issues.find(issue => issue.id === issueId);
             if (!targetIssue) {
                 return;
@@ -121,7 +119,7 @@ function ProofreaderAppContainer() {
         [essayText, focusEditor, issues, toast]
     );
 
-    const handleDismiss = useCallback((issueId: string) => {
+    const handleDismiss = useCallback(issueId => {
         setIssues(prev => prev.filter(issue => issue.id !== issueId));
     }, []);
 

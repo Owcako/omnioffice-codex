@@ -1,16 +1,6 @@
-import type {TextRange} from "./textRange";
 import {findMatchRange} from "./textRange";
 
-interface ReplacementResult {
-    nextText: string;
-    range: TextRange | null;
-}
-
-export function replaceFirstOccurrence(
-    haystack: string,
-    needle: string,
-    replacement: string
-): ReplacementResult {
+export function replaceFirstOccurrence(haystack, needle, replacement) {
     const range = findMatchRange(haystack, needle);
 
     if (!range) {

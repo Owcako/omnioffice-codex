@@ -1,10 +1,10 @@
 # Architecture
-- `src/main.tsx` mounts `App` inside Chakra `ChakraProvider` with custom theme (`src/theme/index.ts`), applying global styles and color config.
-- `App.tsx` delegates rendering to `ProofreaderAppContainer` (container layer) keeping the root component lean.
+- `src/main.jsx` mounts `App` inside Chakra `ChakraProvider` with custom theme (`src/theme/index.js`), applying global styles and color config.
+- `App.jsx` delegates rendering to `ProofreaderAppContainer` (container layer) keeping the root component lean.
 - Container layer (`ProofreaderAppContainer`) coordinates essay text state, proofread issue list, and button handlers via the `useProofreader` hook, then hands props to presentational components.
 - Presentational folder contains layout building blocks (`AppLayout`, `CommandPanel`, `EditorPane`, `IssuesPanel`, `IssueCard`) responsible only for UI; they receive all data and callbacks from the container.
 - Custom hook `useProofreader` wraps async service calls and exposes loading status with Chakra toasts for error feedback.
-- Service layer (`services/proofreader.service.ts`) handles the `/api/proofread` request, normalises responses, and falls back to a deterministic mock template marked with `# Template` for future Gemini integration.
+- Service layer (`services/proofreader.service.js`) handles the `/api/proofread` request, normalises responses, and falls back to a deterministic mock template marked with `# Template` for future Gemini integration.
 - Utilities provide text range detection and replacement logic to keep Accept/Dismiss operations deterministic; highlights derive from `buildHighlightRanges` so UI stays in sync with editor content.
 
 # Decisions
@@ -38,3 +38,4 @@
 
 - 2025-10-03: Completed repository-wide conversion from arrow functions to function syntax to match updated code standards.
 - 2025-10-04: Converted inline wrapper callbacks (useMemo/map/component props) back to arrow functions while keeping standalone declarations, ensuring consistency with latest container style guidance.
+- 2025-10-09: Migrated the React codebase and config from TypeScript to plain JavaScript/JSX, removing type-only modules, renaming files, and trimming TypeScript tooling from the build.

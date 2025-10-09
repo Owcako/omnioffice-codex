@@ -1,4 +1,3 @@
-import type {ProofreadIssue} from "../interfaces/proofreader";
 import {findMatchRange} from "../utils/textRange";
 
 const API_ENDPOINT = "/api/proofread";
@@ -9,15 +8,11 @@ function createId() {
         : Math.random().toString(36).slice(2, 10);
 }
 
-interface RawIssue {
-    id?: string;
-    category?: string;
-    original?: string;
-    suggestion?: string;
-    description?: string;
-}
+function normalizeIssue(issue, index) {
+    if (!issue || typeof issue !== "object") {
+        return null;
+    }
 
-function normalizeIssue(issue: RawIssue, index: number): ProofreadIssue | null {
     if (!issue.original || !issue.suggestion || !issue.description) {
         return null;
     }
@@ -31,27 +26,27 @@ function normalizeIssue(issue: RawIssue, index: number): ProofreadIssue | null {
     };
 }
 
-function normalizeResponse(payload: unknown): ProofreadIssue[] {
+function normalizeResponse(payload) {
     if (!payload || typeof payload !== "object") {
         return [];
     }
 
-    const data = payload as {issues?: RawIssue[]} | RawIssue[];
+    const data = payload;
     console.log("normalizeResponse data:", data);
 
     const issues = Array.isArray(data)
         ? data
         : Array.isArray(data.issues)
-        ? data.issues
-        : [];
+          ? data.issues
+          : [];
 
     return issues
         .map((issue, index) => normalizeIssue(issue, index))
-        .filter((issue): issue is ProofreadIssue => Boolean(issue));
+        .filter(Boolean);
 }
 
-function generateMockIssues(text: string): ProofreadIssue[] {
-    const results: ProofreadIssue[] = [];
+function generateMockIssues(text) {
+    const results = [];
 
     if (!text.trim()) {
         return results;
@@ -102,9 +97,7 @@ function generateMockIssues(text: string): ProofreadIssue[] {
     return results;
 }
 
-export async function requestProofreading(
-    text: string
-): Promise<ProofreadIssue[]> {
+export async function requestProofreading(text) {
     try {
         const response = await fetch(API_ENDPOINT, {
             method: "POST",

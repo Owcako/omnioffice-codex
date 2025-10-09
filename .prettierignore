@@ -1,4 +1,4 @@
 # Ignore artifacts:
-.claude
+.venv
 dev
 node_modules

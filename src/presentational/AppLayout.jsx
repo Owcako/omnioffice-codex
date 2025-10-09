@@ -1,13 +1,6 @@
 import {Grid, GridItem} from "@chakra-ui/react";
-import type {ReactNode} from "react";
 
-interface AppLayoutProps {
-    commandPanel: ReactNode;
-    editor: ReactNode;
-    issuesPanel: ReactNode;
-}
-
-function AppLayout({commandPanel, editor, issuesPanel}: AppLayoutProps) {
+function AppLayout({commandPanel, editor, issuesPanel}) {
     return (
         <Grid
             templateColumns="220px 1fr 360px"
