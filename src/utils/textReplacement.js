@@ -1,5 +1,6 @@
 import {findMatchRange} from "./textRange";
 
+// utils/textReplacement.js: Replaces the first occurrence of a needle.
 export function replaceFirstOccurrence(haystack, needle, replacement) {
     const range = findMatchRange(haystack, needle);
 
@@ -20,3 +21,5 @@ export function replaceFirstOccurrence(haystack, needle, replacement) {
         }
     };
 }
+
+// Module exports replaceFirstOccurrence for the container.

@@ -1,4 +1,6 @@
+// utils/textRange.js: Finds the first case-insensitive range in a string.
 export function findMatchRange(haystack, needle) {
+    // Guard if (!needle.trim()) returns null so blank strings do not create highlights.
     if (!needle.trim()) {
         return null;
     }
@@ -16,3 +18,5 @@ export function findMatchRange(haystack, needle) {
         end: index + needle.length
     };
 }
+
+// Module exports findMatchRange for reuse.

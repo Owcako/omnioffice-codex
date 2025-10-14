@@ -1,13 +1,17 @@
 import {findMatchRange} from "../utils/textRange";
 
+// services/proofreader.service.js: Handles API calls and fallback mock issues.
+// Constant API_ENDPOINT stores "/api/proofread" for reuse.
 const API_ENDPOINT = "/api/proofread";
 
+// Function createId() generates stable ids using crypto.randomUUID when available with a random fallback.
 function createId() {
     return typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
         : Math.random().toString(36).slice(2, 10);
 }
 
+// Function normalizeIssue(issue, index) validates fields and builds a clean issue object.
 function normalizeIssue(issue, index) {
     if (!issue || typeof issue !== "object") {
         return null;
@@ -26,12 +30,15 @@ function normalizeIssue(issue, index) {
     };
 }
 
+// Function normalizeResponse(payload) guards payload shape, logs it, and returns an array of normalized issues.
 function normalizeResponse(payload) {
     if (!payload || typeof payload !== "object") {
         return [];
     }
 
     const data = payload;
+
+    // Console log console.log("normalizeResponse data:", data); surfaces raw payloads for inspection during development.
     console.log("normalizeResponse data:", data);
 
     const issues = Array.isArray(data)
@@ -45,6 +52,7 @@ function normalizeResponse(payload) {
         .filter(Boolean);
 }
 
+// Function generateMockIssues(text) assembles deterministic fallback issues like double spaces, repeated "very very", and missing punctuation by using findMatchRange.
 function generateMockIssues(text) {
     const results = [];
 
@@ -52,6 +60,7 @@ function generateMockIssues(text) {
         return results;
     }
 
+    // Double space check calls findMatchRange(text, "  ") and pushes a clarity issue with a space replacement.
     const doubleSpaceRange = findMatchRange(text, "  ");
     if (doubleSpaceRange) {
         results.push({
@@ -64,6 +73,7 @@ function generateMockIssues(text) {
         });
     }
 
+    // Repeated "very very" check finds the phrase and pushes a style issue suggesting "extremely".
     const veryIndex = text.toLowerCase().indexOf("very very");
     if (veryIndex !== -1) {
         results.push({
@@ -76,6 +86,7 @@ function generateMockIssues(text) {
         });
     }
 
+    // Missing period check uses a regex to find long sentences ending without punctuation and suggests appending a period.
     const sentenceWithoutPeriod = /\b([A-Z][^.!?]{20,})(?=$|\s{2,})/m.exec(
         text
     );
@@ -97,6 +108,7 @@ function generateMockIssues(text) {
     return results;
 }
 
+// Exported async function requestProofreading(text) posts to the API, throws on HTTP errors, parses JSON, normalizes issues, appends ids, warns and falls back to mocks on failure, and returns the issue list.
 export async function requestProofreading(text) {
     try {
         const response = await fetch(API_ENDPOINT, {
@@ -127,6 +139,7 @@ export async function requestProofreading(text) {
             }));
         }
     } catch (error) {
+        // Console warn console.warn("Falling back to mock proofreading issues:", error); announces when the mock path runs.
         console.warn("Falling back to mock proofreading issues:", error);
     }
 

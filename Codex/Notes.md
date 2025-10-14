@@ -1,4 +1,5 @@
 # Architecture
+
 - `src/main.jsx` mounts `App` inside Chakra `ChakraProvider` with custom theme (`src/theme/index.js`), applying global styles and color config.
 - `App.jsx` delegates rendering to `ProofreaderAppContainer` (container layer) keeping the root component lean.
 - Container layer (`ProofreaderAppContainer`) coordinates essay text state, proofread issue list, and button handlers via the `useProofreader` hook, then hands props to presentational components.
@@ -8,6 +9,7 @@
 - Utilities provide text range detection and replacement logic to keep Accept/Dismiss operations deterministic; highlights derive from `buildHighlightRanges` so UI stays in sync with editor content.
 
 # Decisions
+
 - 2025-09-23: Reviewed repository scaffold (Vite React template) and product briefs to prepare for implementing essay assistance features.
 - 2025-09-23: Standardised on Chakra UI v2.x for stable hooks/components and adopted `react-highlight-within-textarea` (with Draft.js) to produce inline underlines without building custom overlays.
 - 2025-09-23: Added mock proofreading fallback logic so UI remains interactive until the Gemini-backed endpoint is wired in.

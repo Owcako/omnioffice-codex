@@ -1,6 +1,9 @@
 import {Box, Button, Text, VStack} from "@chakra-ui/react";
 
+// CommandPanel.jsx: Shows the left vertical toolbar.
 function CommandPanel({onProofread, disabled, isLoading, helperText}) {
+    // Function CommandPanel receives onProofread, disabled, isLoading, and helperText props to control the proofread button and helper copy.
+    // VStack wrapper stretches full height with padding to match the outlined left panel.
     return (
         <VStack
             align="stretch"
@@ -11,6 +14,7 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
             minH="100vh"
         >
             <Box>
+                {/* Tools heading text introduces the button group. */}
                 <Text
                     fontSize="lg"
                     fontWeight="semibold"
@@ -19,6 +23,7 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
                 >
                     Tools
                 </Text>
+                {/* Proofread button uses colorScheme="purple", calls onProofread, obeys disabled, and shows the loading spinner when isLoading is true. */}
                 <Button
                     colorScheme="purple"
                     onClick={onProofread}
@@ -28,9 +33,11 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
                     Proofread
                 </Button>
             </Box>
+            {/* Optional helper text box shows helperText under the controls when available. */}
             {helperText && <Box color="gray.500">{helperText}</Box>}
         </VStack>
     );
 }
 
+// Default export exposes CommandPanel for layout composition.
 export default CommandPanel;

@@ -1,3 +1,5 @@
+/* index.css: Supplies global and editor-specific styles required by the outline. */
+/* Rule for html, body, #root sets full height and removes margins. */
 html,
 body,
 #root {
@@ -5,12 +7,14 @@ body,
     margin: 0;
 }
 
+/* Rule for body sets the font family, background color, and text color to match the outline. */
 body {
     font-family: "Inter", "Segoe UI", sans-serif;
     background-color: #f7fafc;
     color: #1a202c;
 }
 
+/* .proofreader-editor class makes the textarea transparent, borderless, and sets typography. */
 .proofreader-editor {
     width: 100%;
     height: 100%;
@@ -21,14 +25,17 @@ body {
     color: #1a202c;
 }
 
+/* .proofreader-editor .DraftEditor-root forces a tall minimum height for the editor area. */
 .proofreader-editor .DraftEditor-root {
     min-height: calc(100vh - 160px);
 }
 
+/* .proofreader-editor .public-DraftEditorPlaceholder-root colors the placeholder gray. */
 .proofreader-editor .public-DraftEditorPlaceholder-root {
     color: #a0aec0;
 }
 
+/* .proofread-highlight class applies the wavy underline used for issue highlights. */
 .proofread-highlight {
     text-decoration: underline;
     text-decoration-color: #d53f8c;

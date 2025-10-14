@@ -1,6 +1,8 @@
 import {Box, Button, HStack, Heading, Text, VStack} from "@chakra-ui/react";
 
+// IssueCard.jsx: Displays each suggestion card.
 function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
+    // Function IssueCard receives issue, onAccept, onDismiss, and isProcessing props.
     return (
         <Box
             bg="white"
@@ -10,10 +12,12 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
             borderLeft="4px solid"
             borderColor="purple.300"
         >
+            {/* Outer Box uses white background, purple border accent, and shadow per outline. */}
             <VStack
                 align="stretch"
                 spacing={3}
             >
+                {/* Upper Text shows the issue.category in uppercase micro copy. */}
                 <Text
                     fontSize="xs"
                     textTransform="uppercase"
@@ -22,6 +26,7 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
                 >
                     {issue.category}
                 </Text>
+                {/* Heading shows {issue.original} -> and bolds the suggestion. */}
                 <Heading
                     as="h3"
                     size="sm"
@@ -37,16 +42,19 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
                         {issue.suggestion}
                     </Text>
                 </Heading>
+                {/* Body Text renders issue.description for additional context. */}
                 <Text
                     fontSize="sm"
                     color="gray.600"
                 >
                     {issue.description}
                 </Text>
+                {/* HStack holds the action buttons in a row. */}
                 <HStack
                     spacing={3}
                     pt={2}
                 >
+                    {/* Accept button calls onAccept and shows a loading spinner when isProcessing is true. */}
                     <Button
                         colorScheme="purple"
                         size="sm"
@@ -55,6 +63,7 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
                     >
                         Accept
                     </Button>
+                    {/* Dismiss button calls onDismiss and disables while processing to block duplicate clicks. */}
                     <Button
                         variant="outline"
                         size="sm"
@@ -69,4 +78,5 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
     );
 }
 
+// Default export exposes IssueCard to the panel.
 export default IssueCard;
