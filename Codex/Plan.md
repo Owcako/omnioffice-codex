@@ -1,8 +1,7 @@
-# Directory Overview
+# Dependencies
 
-- Keep `src/containers` for stateful components and `src/presentational` for pure UI pieces so the container/presentational pattern stays in place.
-- Keep `src/hooks`, `src/services`, and `src/utils` to hold reusable logic, service calls, and helpers.
-- Expose `useProofreader` and the utility helpers through their folders so other features can reuse them later.
+- Install `@tiptap/react`, `@tiptap/starter-kit`, and `@tiptap/extension-placeholder` to power the editor.
+- Remove `react-highlight-within-textarea` and `draft-js` because TipTap replaces them.
 
 # Entry
 
@@ -19,29 +18,30 @@ App.jsx: Provides the container component to the tree.
 
 # Containers
 
-ProofreaderAppContainer.jsx: Coordinates the essay workflow and passes data to presentational pieces.
+ProofreaderAppContainer.jsx: Coordinates the essay workflow and syncs the TipTap editor with proofreading data.
 
-- State `essayText` keeps the editor text string and passes to `EditorPane` as the `value` prop.
-- State `issues` keeps the array of issue objects and passes to `IssuesPanel` as the `issues` prop.
-- State `isAcceptingId` tracks which issue is being accepted to disable its controls and passes to `IssuesPanel` as the `isAcceptingId` prop.
-- State `lastRunAt` stores the Date of the most recent proofread run and formats a helper string for the `CommandPanel`.
-- Hook result `{runProofread, isLoading}` comes from `useProofreader()` and passes `isLoading` to `CommandPanel` and the `runProofread` function into handlers.
-- Hook `toast = useToast()` gives access to Chakra toasts used for user messages inside handlers.
-- Ref `editorRef` holds the textarea instance so handlers can restore focus and passes to `EditorPane` as the `editorRef` prop.
-- Derived value `highlightRanges` uses `useMemo` to call `buildHighlightRanges(essayText, issues)` and passes the result to `EditorPane` as the `highlightRanges` prop.
-- Callback `handleTextChange(nextText)` exits early if text did not change, updates `essayText`, and clears `issues` when the trimmed text is empty before passing to `EditorPane` as `onChange`.
-- Callback `focusEditor()` focuses `editorRef.current` so the editor regains focus after actions.
-- Async callback `handleProofread()` blocks empty essays, shows an info toast prompting writing, awaits `runProofread(essayText)`, updates `issues`, updates `lastRunAt`, shows a success toast summarizing results, and calls `focusEditor()` before passing to `CommandPanel` as `onProofread`.
-- Info toast with title "Add some writing first" and description "Type or paste your essay before running proofread." appears inside `handleProofread` whenever the trimmed essay is empty.
-- Success toast with title "Proofreading complete" and dynamic description reports the number of suggestions after `runProofread` resolves.
+- State `essayText` stores the current editor text and passes to `EditorPane` as the `content` prop.
+- State `issues` keeps the list of issue objects and passes to `IssuesPanel` as the `issues` prop.
+- State `isAcceptingId` tracks the id that is being accepted and passes to `IssuesPanel` as the `isAcceptingId` prop.
+- State `lastRunAt` stores the last proofread `Date` and drives the helper text shown in `CommandPanel`.
+- Ref `editorRef` holds the TipTap editor instance so actions can refocus the editor and passes to `EditorPane` through the `onReady` prop.
+- Hook result `{runProofread, isLoading}` comes from `useProofreader()` and feeds loading flags into the command button.
+- Hook `toast = useToast()` prepares Chakra toasts for user feedback.
+- Derived value `highlightRanges` uses `buildHighlightRanges(essayText, issues)` and passes to `EditorPane` as the `highlightRanges` prop.
+- Callback `handleEditorChange(nextText)` ignores repeats, updates `essayText`, and clears `issues` when the trimmed text is empty before passing to `EditorPane` as `onChange`.
+- Callback `focusEditor()` calls `editorRef.current?.commands.focus('end')` so buttons return focus to the editor.
+- Async callback `handleProofread()` blocks empty input, fires the info toast, awaits `runProofread(essayText)`, updates `issues`, records `lastRunAt`, fires the success toast, and then calls `focusEditor()` before passing to `CommandPanel` as `onProofread`.
+- Info toast with title "Add some writing first" and description "Type or paste your essay before running proofread." appears when `handleProofread` rejects empty text.
+- Success toast with title "Proofreading complete" and a count-based description appears after `runProofread` resolves.
 - Catch block relies on the hook's error toast so the container does not show a duplicate message.
-- Disabled state for the proofread button uses `!essayText.trim() || isLoading` to prevent empty or duplicate runs.
-- Helper text string uses `lastRunAt.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})` when available and passes to `CommandPanel` as `helperText`.
-- Async callback `handleAccept(issueId)` finds the target issue, sets `isAcceptingId`, calls `replaceFirstOccurrence` to build the next editor text, shows an info toast if no match is found, updates `essayText`, filters the accepted issue out of `issues`, shows a success toast when the replacement happens, clears `isAcceptingId`, and calls `focusEditor()` before passing to `IssuesPanel` as `onAccept`.
-- Info toast with title "Text already updated" and description "We could not locate the original phrasing to replace." appears when `replaceFirstOccurrence` cannot find a range.
-- Success toast with title "Suggestion applied" and description `Updated "{targetIssue.original}".` confirms the replacement.
+- Callback `syncEditorContent(nextText)` sets the TipTap document to `nextText` through `editorRef.current` so Accept keeps the editor and state aligned.
+- Async callback `handleAccept(issueId)` guards the lookup, sets `isAcceptingId`, uses `replaceFirstOccurrence` to build `nextText`, shows the missing-match toast when no range is found, updates `essayText`, removes the accepted issue, calls `syncEditorContent(nextText)`, fires the success toast, clears `isAcceptingId`, and calls `focusEditor()` before passing to `IssuesPanel` as `onAccept`.
+- Info toast with title "Text already updated" and description "We could not locate the original phrasing to replace." appears when `replaceFirstOccurrence` returns no range.
+- Success toast with title "Suggestion applied" and description `Updated "{targetIssue.original}".` appears after the replacement.
 - Callback `handleDismiss(issueId)` removes the matching issue from `issues` and passes to `IssuesPanel` as `onDismiss`.
-- JSX return renders `AppLayout` and passes the composed `CommandPanel`, `EditorPane`, and `IssuesPanel` elements through the `commandPanel`, `editor`, and `issuesPanel` props.
+- Derived string `helperText` reads `lastRunAt` with `toLocaleTimeString` and passes to `CommandPanel` as the `helperText` prop.
+- Prop `disabled` equals `!essayText.trim() || isLoading` so the proofread button ignores blank or busy states.
+- JSX return renders `AppLayout` with `CommandPanel`, `EditorPane`, and `IssuesPanel` provided through props.
 - Default export exposes `ProofreaderAppContainer` to `App.jsx`.
 
 # Presentational
@@ -57,18 +57,22 @@ AppLayout.jsx: Defines the three-column layout shell from the outline.
 CommandPanel.jsx: Shows the left vertical toolbar.
 
 - Function `CommandPanel` receives `onProofread`, `disabled`, `isLoading`, and `helperText` props to control the proofread button and helper copy.
-- `VStack` wrapper stretches full height with padding to match the outlined left panel.
-- `Tools` heading text introduces the button group.
-- `Proofread` button uses `colorScheme="purple"`, calls `onProofread`, obeys `disabled`, and shows the loading spinner when `isLoading` is true.
-- Optional helper text box shows `helperText` under the controls when available.
+- VStack wrapper stretches full height with padding to match the outlined left panel.
+- Heading text displays "Tools" above the button.
+- Proofread button uses `colorScheme="purple"`, calls `onProofread`, respects `disabled`, and shows the spinner when `isLoading` is true.
+- Helper text box renders `helperText` when provided.
 - Default export exposes `CommandPanel` for layout composition.
 
-EditorPane.jsx: Hosts the transparent textbox with highlights.
+EditorPane.jsx: Hosts the TipTap editor with placeholder, change relay, and highlight overlay.
 
-- Function `EditorPane` receives `value`, `placeholder`, `onChange`, `highlightRanges`, and `editorRef` props.
-- Derived value `highlightConfig` uses `useMemo` to map `highlightRanges` into `[start, end]` pairs with the `proofread-highlight` class.
-- Wrapper `Box` limits the width to 960px so the editor stays readable.
-- `HighlightWithinTextarea` renders the editor, forwards the `editorRef`, binds `value`, uses the placeholder text, applies the `highlightConfig`, calls `onChange(nextValue)` on each edit, and uses the `.proofreader-editor` class to meet the design.
+- Function `EditorPane` receives `content`, `placeholder`, `onChange`, `highlightRanges`, and `onReady` props.
+- Hook `editor = useEditor(...)` initializes TipTap with `StarterKit`, the placeholder extension, and the issue highlight plugin.
+- Hook `useEffect` registers `createIssueHighlightPlugin()` once the editor instance exists.
+- Callback `handleUpdate()` grabs `editor.getText()` and calls `onChange` when the text changed.
+- Hook `useEffect` calls `onReady(editor)` once so the container can store the instance.
+- Hook `useEffect` keeps the TipTap document in sync with the `content` prop without re-triggering `onChange`.
+- Hook `useEffect` calls `updateIssueHighlights({editor, offsets: highlightRanges})` whenever `highlightRanges` change.
+- Return block renders a `Box` wrapper and the `<EditorContent>` element with the proper classes and placeholder.
 - Default export exposes `EditorPane` for the container.
 
 IssuesPanel.jsx: Renders the right column suggestion stack.
@@ -76,70 +80,83 @@ IssuesPanel.jsx: Renders the right column suggestion stack.
 - Function `IssuesPanel` receives `issues`, `onAccept`, `onDismiss`, and `isAcceptingId` props.
 - Wrapper `Box` stretches full height with padding and vertical scroll.
 - Heading text labels the section as "Suggestions".
-- Empty state message explains that suggestions appear after analysis when `issues` is empty.
-- `Stack` iterates over `issues` and renders `IssueCard` for each item while passing callbacks.
-- Inline handler `() => onAccept(issue.id)` wraps the accept prop so each card sends its own id.
-- Inline handler `() => onDismiss(issue.id)` wraps the dismiss prop so each card sends its own id.
-- `IssueCard` receives `isProcessing` as `isAcceptingId === issue.id` to show the loading state.
+- Empty state copy explains that suggestions appear after analysis when `issues` is empty.
+- Stack iterates over `issues` and renders `IssueCard` for each item while passing callbacks.
+- Inline handler `() => onAccept(issue.id)` lets every card send its id to the accept callback.
+- Inline handler `() => onDismiss(issue.id)` lets every card send its id to the dismiss callback.
+- `isProcessing` equals `isAcceptingId === issue.id` so the Accept button shows loading per card.
 - Default export exposes `IssuesPanel` for the container.
 
 IssueCard.jsx: Displays each suggestion card.
 
 - Function `IssueCard` receives `issue`, `onAccept`, `onDismiss`, and `isProcessing` props.
-- Outer `Box` uses white background, purple border accent, and shadow per outline.
-- Upper `Text` shows the `issue.category` in uppercase micro copy.
-- `Heading` shows `{issue.original} ->` and bolds the suggestion.
-- Body `Text` renders `issue.description` for additional context.
-- `HStack` holds the action buttons in a row.
-- `Accept` button calls `onAccept` and shows a loading spinner when `isProcessing` is true.
-- `Dismiss` button calls `onDismiss` and disables while processing to block duplicate clicks.
+- Outer `Box` uses a white background, purple border accent, and shadow per outline.
+- Upper text shows `issue.category` in uppercase micro copy.
+- Heading shows `{issue.original} ->` and bolds the suggestion.
+- Body text renders `issue.description` for additional context.
+- Button row stacks the Accept and Dismiss buttons horizontally.
+- Accept button calls `onAccept` and shows the spinner when `isProcessing` is true.
+- Dismiss button calls `onDismiss` and disables while processing.
 - Default export exposes `IssueCard` to the panel.
 
 # Hooks
 
-hooks/useProofreader.js: Wraps the proofreading service with loading state and toast.
+useProofreader.js: Wraps the proofreading service with loading state and toast.
 
 - State `isLoading` tracks whether a request is running and returns to the container.
 - Hook `toast = useToast()` shows errors when the request fails.
-- Callback `runProofread(text)` sets `isLoading` true, awaits `requestProofreading(text)`, returns the issues, catches errors to log them and show an error toast, and finally sets `isLoading` back to false.
+- Callback `runProofread(text)` sets loading true, awaits `requestProofreading(text)`, returns issues, catches errors to log them and show the error toast, and finally sets loading false.
 - Console error `console.error("Proofreading request failed", error)` records failures for debugging.
 - Error toast with title "Proofreading failed" and description "We could not analyze your writing right now. Please try again shortly." informs the user.
 - Hook returns `{runProofread, isLoading}` for container use.
 
-# Services
-
-services/proofreader.service.js: Handles API calls and fallback mock issues.
-
-- Constant `API_ENDPOINT` stores "/api/proofread" for reuse.
-- Function `createId()` generates stable ids using `crypto.randomUUID` when available with a random fallback.
-- Function `normalizeIssue(issue, index)` validates fields and builds a clean issue object.
-- Function `normalizeResponse(payload)` guards payload shape, logs it, and returns an array of normalized issues.
-- Console log `console.log("normalizeResponse data:", data);` surfaces raw payloads for inspection during development.
-- Function `generateMockIssues(text)` assembles deterministic fallback issues like double spaces, repeated "very very", and missing punctuation by using `findMatchRange`.
-- Double space check calls `findMatchRange(text, "  ")` and pushes a clarity issue with a space replacement.
-- Repeated "very very" check finds the phrase and pushes a style issue suggesting "extremely".
-- Missing period check uses a regex to find long sentences ending without punctuation and suggests appending a period.
-- Exported async function `requestProofreading(text)` posts to the API, throws on HTTP errors, parses JSON, normalizes issues, appends ids, warns and falls back to mocks on failure, and returns the issue list.
-- Console warn `console.warn("Falling back to mock proofreading issues:", error);` announces when the mock path runs.
-
 # Utils
 
-utils/highlights.js: Maps issues to highlight ranges.
+highlights.js: Maps issues to highlight ranges.
 
 - Function `mapIssueToRange(text, issue)` calls `findMatchRange` with `issue.original`.
 - Function `buildHighlightRanges(text, issues)` maps the list through `mapIssueToRange` and filters out nulls.
 - Module exports both helpers for other files.
 
-utils/textRange.js: Finds the first case-insensitive range in a string.
+textRange.js: Finds the first case-insensitive range in a string.
 
 - Function `findMatchRange(haystack, needle)` returns `{start, end}` when the lowercased needle exists and null when not found.
 - Guard `if (!needle.trim())` returns null so blank strings do not create highlights.
 - Module exports `findMatchRange` for reuse.
 
-utils/textReplacement.js: Replaces the first occurrence of a needle.
+textReplacement.js: Replaces the first occurrence of a needle.
 
 - Function `replaceFirstOccurrence(haystack, needle, replacement)` uses `findMatchRange`, returns unchanged text when no range exists, and returns the replaced text plus the new range.
 - Module exports `replaceFirstOccurrence` for the container.
+
+tiptapHighlights.js: Bridges plain-text offsets into TipTap highlight decorations.
+
+- Constant `issueHighlightPluginKey` stores the plugin key so updates can target the highlight plugin.
+- Function `createIssueHighlightPlugin()` builds a ProseMirror plugin that keeps issue underline decorations in state.
+- Function `offsetsToDocRanges({doc, offsets})` converts plain text offsets into ProseMirror positions.
+- Function `updateIssueHighlights({editor, offsets})` maps offsets to doc ranges and dispatches the plugin meta to redraw the decorations.
+
+# Tooling
+
+eslint.config.js: Configures ESLint for the project.
+
+- Array entry with `ignores` skips `node_modules`, `dist`, `.venv`, and build artifacts from linting.
+- Spread entries apply the recommended React and Prettier configs.
+- Config block sets browser globals, enables React settings, and turns off `react/react-in-jsx-scope` and `react/prop-types` for the automatic runtime.
+
+# Services
+
+proofreader.service.js: Handles API calls and fallback mock issues.
+
+- Constant `API_ENDPOINT` stores "/api/proofread" for reuse.
+- Function `createId()` generates stable ids using `crypto.randomUUID` with a random fallback.
+- Function `normalizeIssue(issue, index)` validates fields and builds a clean issue object.
+- Function `normalizeResponse(payload)` guards payload shape, logs it, and returns an array of normalized issues.
+- Function `generateMockIssues(text)` assembles deterministic fallback issues like double spaces, repeated "very very", and missing punctuation.
+- Async function `requestProofreading(text)` posts to the API, normalizes issues, and falls back to mock issues on failure.
+- Console log `console.log("normalizeResponse data:", data);` surfaces raw payloads for inspection during development.
+- Console warn `console.warn("Falling back to mock proofreading issues:", error);` announces when the mock path runs.
+- `# Template` comment marks the Gemini integration placeholder.
 
 # Theme
 
@@ -155,7 +172,8 @@ index.css: Supplies global and editor-specific styles required by the outline.
 
 - Rule for `html, body, #root` sets full height and removes margins.
 - Rule for `body` sets the font family, background color, and text color to match the outline.
-- `.proofreader-editor` class makes the textarea transparent, borderless, and sets typography.
-- `.proofreader-editor .DraftEditor-root` forces a tall minimum height for the editor area.
-- `.proofreader-editor .public-DraftEditorPlaceholder-root` colors the placeholder gray.
+- `.proofreader-editor` class makes the TipTap surface transparent, borderless, and sets typography.
+- `.proofreader-editor .ProseMirror` rule ensures the editor fills the available height and removes borders.
+- `.proofreader-editor .ProseMirror p` rule sets comfortable line height inside paragraphs.
+- `.proofreader-editor .ProseMirror p.is-editor-empty::before` rule styles the placeholder in gray.
 - `.proofread-highlight` class applies the wavy underline used for issue highlights.

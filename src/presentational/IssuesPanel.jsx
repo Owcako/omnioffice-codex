@@ -24,7 +24,7 @@ function IssuesPanel({issues, onAccept, onDismiss, isAcceptingId}) {
             </Text>
             {issues.length === 0 ? (
                 <>
-                    {/* Empty state message explains that suggestions appear after analysis when issues is empty. */}
+                    {/* Empty state copy explains that suggestions appear after analysis when issues is empty. */}
                     <Box
                         color="gray.500"
                         mt={10}
@@ -39,7 +39,7 @@ function IssuesPanel({issues, onAccept, onDismiss, isAcceptingId}) {
                     {/* Stack iterates over issues and renders IssueCard for each item while passing callbacks. */}
                     <Stack spacing={4}>
                         {issues.map(issue => {
-                            // IssueCard receives isProcessing as isAcceptingId === issue.id to show the loading state.
+                            // isProcessing equals isAcceptingId === issue.id so the Accept button shows loading per card.
                             const isProcessing = isAcceptingId === issue.id;
 
                             return (
@@ -47,11 +47,11 @@ function IssuesPanel({issues, onAccept, onDismiss, isAcceptingId}) {
                                     key={issue.id}
                                     issue={issue}
                                     onAccept={() => {
-                                        // Inline handler () => onAccept(issue.id) wraps the accept prop so each card sends its own id.
+                                        // Inline handler () => onAccept(issue.id) lets every card send its id to the accept callback.
                                         onAccept(issue.id);
                                     }}
                                     onDismiss={() => {
-                                        // Inline handler () => onDismiss(issue.id) wraps the dismiss prop so each card sends its own id.
+                                        // Inline handler () => onDismiss(issue.id) lets every card send its id to the dismiss callback.
                                         onDismiss(issue.id);
                                     }}
                                     isProcessing={isProcessing}

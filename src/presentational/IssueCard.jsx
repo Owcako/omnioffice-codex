@@ -12,12 +12,12 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
             borderLeft="4px solid"
             borderColor="purple.300"
         >
-            {/* Outer Box uses white background, purple border accent, and shadow per outline. */}
+            {/* Outer Box uses a white background, purple border accent, and shadow per outline. */}
             <VStack
                 align="stretch"
                 spacing={3}
             >
-                {/* Upper Text shows the issue.category in uppercase micro copy. */}
+                {/* Upper text shows issue.category in uppercase micro copy. */}
                 <Text
                     fontSize="xs"
                     textTransform="uppercase"
@@ -49,12 +49,12 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
                 >
                     {issue.description}
                 </Text>
-                {/* HStack holds the action buttons in a row. */}
+                {/* Button row stacks the Accept and Dismiss buttons horizontally. */}
                 <HStack
                     spacing={3}
                     pt={2}
                 >
-                    {/* Accept button calls onAccept and shows a loading spinner when isProcessing is true. */}
+                    {/* Accept button calls onAccept and shows the spinner when isProcessing is true. */}
                     <Button
                         colorScheme="purple"
                         size="sm"
@@ -63,7 +63,7 @@ function IssueCard({issue, onAccept, onDismiss, isProcessing}) {
                     >
                         Accept
                     </Button>
-                    {/* Dismiss button calls onDismiss and disables while processing to block duplicate clicks. */}
+                    {/* Dismiss button calls onDismiss and disables while processing. */}
                     <Button
                         variant="outline"
                         size="sm"

@@ -14,7 +14,7 @@ body {
     color: #1a202c;
 }
 
-/* .proofreader-editor class makes the textarea transparent, borderless, and sets typography. */
+/* .proofreader-editor class makes the TipTap surface transparent, borderless, and sets typography. */
 .proofreader-editor {
     width: 100%;
     height: 100%;
@@ -25,13 +25,23 @@ body {
     color: #1a202c;
 }
 
-/* .proofreader-editor .DraftEditor-root forces a tall minimum height for the editor area. */
-.proofreader-editor .DraftEditor-root {
+/* .proofreader-editor .ProseMirror rule ensures the editor fills the available height and removes borders. */
+.proofreader-editor .ProseMirror {
     min-height: calc(100vh - 160px);
+    outline: none;
+    border: none;
+    padding: 0;
 }
 
-/* .proofreader-editor .public-DraftEditorPlaceholder-root colors the placeholder gray. */
-.proofreader-editor .public-DraftEditorPlaceholder-root {
+/* .proofreader-editor .ProseMirror p rule sets comfortable line height inside paragraphs. */
+.proofreader-editor .ProseMirror p {
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* .proofreader-editor .ProseMirror p.is-editor-empty::before rule styles the placeholder in gray. */
+.proofreader-editor .ProseMirror p.is-editor-empty::before {
+    content: attr(data-placeholder);
     color: #a0aec0;
 }
 
