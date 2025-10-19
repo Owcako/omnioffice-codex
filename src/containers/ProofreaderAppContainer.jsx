@@ -1,62 +1,49 @@
-import {useCallback, useMemo, useRef, useState} from "react";
+import {useRef, useState} from "react";
 import {useToast} from "@chakra-ui/react";
 import AppLayout from "../presentational/AppLayout";
 import CommandPanel from "../presentational/CommandPanel";
 import EditorPane from "../presentational/EditorPane";
 import IssuesPanel from "../presentational/IssuesPanel";
 import {useProofreader} from "../hooks/useProofreader";
-import {buildHighlightRanges} from "../utils/highlights";
-import {replaceFirstOccurrence} from "../utils/textReplacement";
+import buildHighlightRanges from "../utils/highlights";
+import replaceFirstOccurrence from "../utils/textReplacement";
 
 // ProofreaderAppContainer.jsx: Coordinates the essay workflow and syncs the TipTap editor with proofreading data.
 function ProofreaderAppContainer() {
-    // State essayText stores the current editor text and passes to EditorPane as the content prop.
+    // State essayText stores the current editor text before sending it to EditorPane as the content prop.
     const [essayText, setEssayText] = useState("");
-    // State issues keeps the list of issue objects and passes to IssuesPanel as the issues prop.
+    // State issues holds the suggestion list before handing it to IssuesPanel as the issues prop.
     const [issues, setIssues] = useState([]);
-    // State isAcceptingId tracks the id that is being accepted and passes to IssuesPanel as the isAcceptingId prop.
+    // State isAcceptingId tracks the issue id currently being accepted before passing it to IssuesPanel as the isAcceptingId prop.
     const [isAcceptingId, setIsAcceptingId] = useState(null);
-    // State lastRunAt stores the last proofread Date and drives the helper text shown in CommandPanel.
+    // State lastRunAt keeps the last proofread Date so helper text can mention the analysis time.
     const [lastRunAt, setLastRunAt] = useState(null);
-
-    // Ref editorRef holds the TipTap editor instance so actions can refocus the editor and passes to EditorPane through the onReady prop.
+    // Ref editorRef stores the TipTap editor instance before passing it into EditorPane through the onReady prop.
     const editorRef = useRef(null);
-
-    // Hook result {runProofread, isLoading} comes from useProofreader() and feeds loading flags into the command button.
+    // Hook result {runProofread, isLoading} comes from useProofreader() and feeds button loading props.
     const {runProofread, isLoading} = useProofreader();
-    // Hook toast = useToast() prepares Chakra toasts for user feedback.
+    // Hook toast = useToast() prepares Chakra toasts for success and info feedback.
     const toast = useToast();
+    // Derived value highlightRanges calls buildHighlightRanges({essayText, issues}) before feeding EditorPane as the highlightRanges prop.
+    const highlightRanges = buildHighlightRanges({essayText, issues});
 
-    // Derived value highlightRanges uses buildHighlightRanges(essayText, issues) and passes to EditorPane as the highlightRanges prop.
-    const highlightRanges = useMemo(
-        () => buildHighlightRanges(essayText, issues),
-        [essayText, issues]
-    );
+    // Function handleEditorChange({nextText}) updates essayText and clears issues when nextText is blank before forwarding to EditorPane as onChange.
+    function handleEditorChange({nextText}) {
+        setEssayText(nextText);
+        if (!nextText.trim()) {
+            setIssues([]);
+        }
+    }
 
-    // Callback handleEditorChange(nextText) ignores repeats, updates essayText, and clears issues when the trimmed text is empty before passing to EditorPane as onChange.
-    const handleEditorChange = useCallback(
-        nextText => {
-            if (nextText === essayText) {
-                return;
-            }
-
-            setEssayText(nextText);
-            if (!nextText.trim()) {
-                setIssues([]);
-            }
-        },
-        [essayText]
-    );
-
-    // Callback focusEditor() calls editorRef.current?.commands.focus('end') so buttons return focus to the editor.
-    const focusEditor = useCallback(() => {
+    // Function focusEditor() calls editorRef.current?.commands.focus("end") so buttons return focus to the editor.
+    function focusEditor() {
         editorRef.current?.commands.focus("end");
-    }, []);
+    }
 
-    // Async callback handleProofread() blocks empty input, fires the info toast, awaits runProofread(essayText), updates issues, records lastRunAt, fires the success toast, and then calls focusEditor() before passing to CommandPanel as onProofread.
-    const handleProofread = useCallback(async () => {
+    // Function handleProofread() blocks empty input, fires the info toast, runs runProofread with essayText, updates issues, records lastRunAt, shows the success toast, and refocuses the editor before passing to CommandPanel as onProofread.
+    async function handleProofread() {
         if (!essayText.trim()) {
-            // Info toast with title "Add some writing first" and description "Type or paste your essay before running proofread." appears when handleProofread rejects empty text.
+            // Info toast with title "Add some writing first" and description "Type or paste your essay before running proofread." appears when essayText is blank.
             toast({
                 title: "Add some writing first",
                 description:
@@ -70,7 +57,7 @@ function ProofreaderAppContainer() {
         }
 
         try {
-            const nextIssues = await runProofread(essayText);
+            const nextIssues = await runProofread({text: essayText});
             setIssues(nextIssues);
             setLastRunAt(new Date());
 
@@ -91,10 +78,10 @@ function ProofreaderAppContainer() {
         } finally {
             focusEditor();
         }
-    }, [essayText, focusEditor, runProofread, toast]);
+    }
 
-    // Callback syncEditorContent(nextText) sets the TipTap document to nextText through editorRef.current so Accept keeps the editor and state aligned.
-    const syncEditorContent = useCallback(nextText => {
+    // Function syncEditorContent({nextText}) converts nextText into TipTap JSON and calls editorRef.current.commands.setContent to align the editor value.
+    function syncEditorContent({nextText}) {
         if (!editorRef.current) {
             return;
         }
@@ -114,79 +101,76 @@ function ProofreaderAppContainer() {
             },
             false
         );
-    }, []);
+    }
 
-    // Async callback handleAccept(issueId) guards the lookup, sets isAcceptingId, uses replaceFirstOccurrence to build nextText, shows the missing-match toast when no range is found, updates essayText, removes the accepted issue, calls syncEditorContent(nextText), fires the success toast, clears isAcceptingId, and calls focusEditor() before passing to IssuesPanel as onAccept.
-    const handleAccept = useCallback(
-        issueId => {
-            const targetIssue = issues.find(issue => issue.id === issueId);
-            if (!targetIssue) {
-                return;
-            }
+    // Function handleAccept({issueId}) finds the target issue, sets isAcceptingId, replaces text with replaceFirstOccurrence, handles the missing-match toast, updates essayText, prunes the accepted issue, syncs the editor, shows the success toast, clears isAcceptingId, and refocuses the editor before passing to IssuesPanel as onAccept.
+    function handleAccept({issueId}) {
+        const targetIssue = issues.find(issue => issue.id === issueId);
+        if (!targetIssue) {
+            return;
+        }
 
-            setIsAcceptingId(issueId);
-            try {
-                const {nextText, range} = replaceFirstOccurrence(
-                    essayText,
-                    targetIssue.original,
-                    targetIssue.suggestion
-                );
+        setIsAcceptingId(issueId);
+        try {
+            const {nextText, range} = replaceFirstOccurrence({
+                essayText,
+                original: targetIssue.original,
+                suggestion: targetIssue.suggestion
+            });
 
-                if (!range) {
-                    // Info toast with title "Text already updated" and description "We could not locate the original phrasing to replace." appears when replaceFirstOccurrence returns no range.
-                    toast({
-                        title: "Text already updated",
-                        description:
-                            "We could not locate the original phrasing to replace.",
-                        status: "info",
-                        duration: 3000,
-                        isClosable: true
-                    });
-
-                    return;
-                }
-
-                setEssayText(nextText);
-                setIssues(prev => prev.filter(issue => issue.id !== issueId));
-                syncEditorContent(nextText);
-
-                // Success toast with title "Suggestion applied" and description `Updated "{targetIssue.original}".` appears after the replacement.
+            if (!range) {
+                // Info toast with title "Text already updated" and description "We could not locate the original phrasing to replace." appears when replaceFirstOccurrence returns no range.
                 toast({
-                    title: "Suggestion applied",
-                    description: `Updated "${targetIssue.original}".`,
-                    status: "success",
+                    title: "Text already updated",
+                    description:
+                        "We could not locate the original phrasing to replace.",
+                    status: "info",
                     duration: 3000,
                     isClosable: true
                 });
-            } finally {
-                setIsAcceptingId(null);
-                focusEditor();
+
+                return;
             }
-        },
-        [essayText, focusEditor, issues, syncEditorContent, toast]
-    );
 
-    // Callback handleDismiss(issueId) removes the matching issue from issues and passes to IssuesPanel as onDismiss.
-    const handleDismiss = useCallback(issueId => {
-        setIssues(prev => prev.filter(issue => issue.id !== issueId));
-    }, []);
+            setEssayText(nextText);
+            setIssues(prevIssues =>
+                prevIssues.filter(issue => issue.id !== issueId)
+            );
+            syncEditorContent({nextText});
 
-    // Derived string helperText reads lastRunAt with toLocaleTimeString and passes to CommandPanel as the helperText prop.
-    const helperText = useMemo(() => {
-        if (!lastRunAt) {
-            return null;
+            // Success toast with title "Suggestion applied" and description Updated "{original}" appears after a replacement.
+            toast({
+                title: "Suggestion applied",
+                description: `Updated "${targetIssue.original}".`,
+                status: "success",
+                duration: 3000,
+                isClosable: true
+            });
+        } finally {
+            setIsAcceptingId(null);
+            focusEditor();
         }
+    }
 
-        return `Last analyzed ${lastRunAt.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        })}`;
-    }, [lastRunAt]);
+    // Function handleDismiss({issueId}) removes the matching issue from issues before forwarding to IssuesPanel as onDismiss.
+    function handleDismiss({issueId}) {
+        setIssues(prevIssues =>
+            prevIssues.filter(issue => issue.id !== issueId)
+        );
+    }
 
-    // Prop disabled equals !essayText.trim() || isLoading so the proofread button ignores blank or busy states.
+    // Derived string helperText turns lastRunAt into "Last analyzed HH:MM" before supplying CommandPanel as the helperText prop.
+    const helperText = lastRunAt
+        ? `Last analyzed ${lastRunAt.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit"
+          })}`
+        : null;
+
+    // Derived boolean disabled equals !essayText.trim() || isLoading before controlling the proofread button.
     const disabled = !essayText.trim() || isLoading;
 
-    // JSX return renders AppLayout with CommandPanel, EditorPane, and IssuesPanel provided through props.
+    // JSX return renders AppLayout with CommandPanel, EditorPane, and IssuesPanel supplied as props.
     return (
         <AppLayout
             commandPanel={
@@ -203,7 +187,8 @@ function ProofreaderAppContainer() {
                     placeholder="Start writing your masterpiece"
                     onChange={handleEditorChange}
                     highlightRanges={highlightRanges}
-                    onReady={editor => {
+                    onReady={({editor}) => {
+                        // Inline onReady handler stores the editor instance inside editorRef.
                         editorRef.current = editor;
                     }}
                 />

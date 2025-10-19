@@ -1,25 +1,30 @@
-import {findMatchRange} from "./textRange";
+import findMatchRange from "./textRange";
 
-// utils/textReplacement.js: Replaces the first occurrence of a needle.
-export function replaceFirstOccurrence(haystack, needle, replacement) {
-    const range = findMatchRange(haystack, needle);
+// textReplacement.js: Applies replacements and reports ranges.
+// Function replaceFirstOccurrence({essayText, original, suggestion}) uses findMatchRange to build nextText and returns {nextText, range}.
+function replaceFirstOccurrence({essayText, original, suggestion}) {
+    const range = findMatchRange({
+        text: essayText,
+        target: original
+    });
 
     if (!range) {
-        return {nextText: haystack, range: null};
+        return {nextText: essayText, range: null};
     }
 
-    const nextText = `${haystack.slice(
+    const nextText = `${essayText.slice(
         0,
         range.start
-    )}${replacement}${haystack.slice(range.end)}`;
+    )}${suggestion}${essayText.slice(range.end)}`;
 
     return {
         nextText,
         range: {
             start: range.start,
-            end: range.start + replacement.length
+            end: range.start + suggestion.length
         }
     };
 }
 
-// Module exports replaceFirstOccurrence for the container.
+// Default export exposes replaceFirstOccurrence to the container.
+export default replaceFirstOccurrence;

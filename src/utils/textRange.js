@@ -1,12 +1,12 @@
-// utils/textRange.js: Finds the first case-insensitive range in a string.
-export function findMatchRange(haystack, needle) {
-    // Guard if (!needle.trim()) returns null so blank strings do not create highlights.
-    if (!needle.trim()) {
+// textRange.js: Finds substring ranges.
+// Function findMatchRange({text, target}) performs a case-insensitive search for target and returns start and end offsets.
+function findMatchRange({text, target}) {
+    if (!target.trim()) {
         return null;
     }
 
-    const lowerHaystack = haystack.toLowerCase();
-    const lowerNeedle = needle.toLowerCase();
+    const lowerHaystack = text.toLowerCase();
+    const lowerNeedle = target.toLowerCase();
     const index = lowerHaystack.indexOf(lowerNeedle);
 
     if (index === -1) {
@@ -15,8 +15,9 @@ export function findMatchRange(haystack, needle) {
 
     return {
         start: index,
-        end: index + needle.length
+        end: index + target.length
     };
 }
 
-// Module exports findMatchRange for reuse.
+// Default export exposes findMatchRange for other helpers.
+export default findMatchRange;

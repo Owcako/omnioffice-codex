@@ -39,7 +39,7 @@ function IssuesPanel({issues, onAccept, onDismiss, isAcceptingId}) {
                     {/* Stack iterates over issues and renders IssueCard for each item while passing callbacks. */}
                     <Stack spacing={4}>
                         {issues.map(issue => {
-                            // isProcessing equals isAcceptingId === issue.id so the Accept button shows loading per card.
+                            // Boolean isProcessing equals isAcceptingId === issue.id so the Accept button shows loading per card.
                             const isProcessing = isAcceptingId === issue.id;
 
                             return (
@@ -47,12 +47,12 @@ function IssuesPanel({issues, onAccept, onDismiss, isAcceptingId}) {
                                     key={issue.id}
                                     issue={issue}
                                     onAccept={() => {
-                                        // Inline handler () => onAccept(issue.id) lets every card send its id to the accept callback.
-                                        onAccept(issue.id);
+                                        // Inline handler onAccept({issueId}) lets every card send its id to the accept callback.
+                                        onAccept({issueId: issue.id});
                                     }}
                                     onDismiss={() => {
-                                        // Inline handler () => onDismiss(issue.id) lets every card send its id to the dismiss callback.
-                                        onDismiss(issue.id);
+                                        // Inline handler onDismiss({issueId}) lets every card send its id to the dismiss callback.
+                                        onDismiss({issueId: issue.id});
                                     }}
                                     isProcessing={isProcessing}
                                 />

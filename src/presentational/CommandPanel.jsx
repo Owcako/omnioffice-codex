@@ -26,7 +26,9 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
                 {/* Proofread button uses colorScheme="purple", calls onProofread, respects disabled, and shows the spinner when isLoading is true. */}
                 <Button
                     colorScheme="purple"
-                    onClick={onProofread}
+                    onClick={() => {
+                        onProofread({});
+                    }}
                     isDisabled={disabled}
                     isLoading={isLoading}
                 >

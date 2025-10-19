@@ -1,6 +1,8 @@
 import {Plugin, PluginKey} from "@tiptap/pm/state";
 import {Decoration, DecorationSet} from "@tiptap/pm/view";
 
+// tiptapHighlights.js: Bridges plain-text offsets into TipTap highlight decorations.
+
 // Constant issueHighlightPluginKey stores the plugin key so updates can target the highlight plugin.
 export const issueHighlightPluginKey = new PluginKey("issue-highlight");
 

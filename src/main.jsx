@@ -5,6 +5,8 @@ import App from "./App";
 import theme from "./theme";
 import "./index.css";
 
+// main.jsx: Boots the React app with Chakra theme support.
+
 // Constant rootElement grabs the DOM node with id "root" before rendering starts.
 const rootElement = document.getElementById("root");
 

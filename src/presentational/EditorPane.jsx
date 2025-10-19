@@ -1,12 +1,19 @@
 import {Box} from "@chakra-ui/react";
-import {useCallback, useEffect, useRef} from "react";
+import {useEffect, useMemo, useRef} from "react";
 import {EditorContent, useEditor} from "@tiptap/react";
+import Document from "@tiptap/extension-document";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
+    issueHighlightPluginKey,
     createIssueHighlightPlugin,
     updateIssueHighlights
 } from "../utils/tiptapHighlights";
+
+// Constant EditorDocument extends the base document so TipTap only allows block nodes.
+const EditorDocument = Document.extend({
+    content: "block+"
+});
 
 // EditorPane.jsx: Hosts the TipTap editor with placeholder, change relay, and highlight overlay.
 function EditorPane({
@@ -17,46 +24,50 @@ function EditorPane({
     onReady
 }) {
     // Function EditorPane receives content, placeholder, onChange, highlightRanges, and onReady props.
+    // Ref isSyncingRef stores a boolean to stop sync loops during TipTap updates.
     const isSyncingRef = useRef(false);
+    // Ref lastTextRef keeps the previous text value so duplicate updates can be ignored.
     const lastTextRef = useRef(content ?? "");
 
-    // Callback handleUpdate() grabs editor.getText() and calls onChange when the text changed.
-    const handleUpdate = useCallback(
-        editorInstance => {
-            if (!editorInstance) {
-                return;
-            }
+    // Function handleUpdate({editorInstance}) reads editorInstance.getText(), skips sync cycles, updates lastTextRef, and calls onChange when text changes.
+    function handleUpdate({editorInstance}) {
+        if (!editorInstance) {
+            return;
+        }
 
-            if (isSyncingRef.current) {
-                isSyncingRef.current = false;
-                return;
-            }
+        if (isSyncingRef.current) {
+            isSyncingRef.current = false;
+            return;
+        }
 
-            const nextText = editorInstance.getText();
-            if (lastTextRef.current === nextText) {
-                return;
-            }
+        const nextText = editorInstance.getText();
+        if (lastTextRef.current === nextText) {
+            return;
+        }
 
-            lastTextRef.current = nextText;
-            onChange(nextText);
-        },
-        [onChange]
-    );
+        lastTextRef.current = nextText;
+        onChange({nextText});
+    }
 
-    // Hook editor = useEditor(...) initializes TipTap with StarterKit, the placeholder extension, and the issue highlight plugin.
-    const editor = useEditor(() => {
+    // Constant initialDocContent turns the content prop into TipTap JSON paragraphs for the initial mount.
+    const initialDocContent = useMemo(() => {
         const initialText = content ?? "";
-        const docContent =
-            initialText.length === 0
-                ? [{type: "paragraph"}]
-                : initialText.split("\n").map(line => ({
-                      type: "paragraph",
-                      content: line.length ? [{type: "text", text: line}] : []
-                  }));
 
-        return {
+        return initialText.length === 0
+            ? [{type: "paragraph"}]
+            : initialText.split("\n").map(line => ({
+                  type: "paragraph",
+                  content: line.length ? [{type: "text", text: line}] : []
+              }));
+    }, [content]);
+
+    // Hook editor = useEditor(...) initializes TipTap with EditorDocument, StarterKit, the placeholder extension, and the issue highlight plugin with onUpdate calling handleUpdate.
+    const editor = useEditor(
+        {
             extensions: [
+                EditorDocument,
                 StarterKit.configure({
+                    document: false,
                     hardBreak: false
                 }),
                 Placeholder.configure({
@@ -66,20 +77,22 @@ function EditorPane({
             ],
             content: {
                 type: "doc",
-                content: docContent
+                content: initialDocContent
             },
             onUpdate: ({editor: editorInstance}) => {
-                handleUpdate(editorInstance);
+                handleUpdate({editorInstance});
             }
-        };
-    }, [handleUpdate, placeholder]);
+        },
+        [placeholder]
+    );
 
-    // Hook useEffect registers createIssueHighlightPlugin() once the editor instance exists.
+    // Hook useEffect registers createIssueHighlightPlugin() once editor exists and cleans it up on unmount.
     useEffect(() => {
         if (!editor) {
             return;
         }
 
+        editor.unregisterPlugin(issueHighlightPluginKey);
         const plugin = createIssueHighlightPlugin();
         editor.registerPlugin(plugin);
 
@@ -88,16 +101,16 @@ function EditorPane({
         };
     }, [editor]);
 
-    // Hook useEffect calls onReady(editor) once so the container can store the instance.
+    // Hook useEffect calls onReady({editor}) when the editor instance becomes available.
     useEffect(() => {
         if (!editor) {
             return;
         }
 
-        onReady(editor);
+        onReady({editor});
     }, [editor, onReady]);
 
-    // Hook useEffect keeps the TipTap document in sync with the content prop without re-triggering onChange.
+    // Hook useEffect keeps the TipTap document in sync with the content prop without re-triggering onChange by flipping isSyncingRef and lastTextRef.
     useEffect(() => {
         if (!editor) {
             return;
@@ -128,7 +141,7 @@ function EditorPane({
         );
     }, [content, editor]);
 
-    // Hook useEffect calls updateIssueHighlights({editor, offsets: highlightRanges}) whenever highlightRanges change.
+    // Hook useEffect calls updateIssueHighlights({editor, offsets: highlightRanges}) whenever highlightRanges changes.
     useEffect(() => {
         if (!editor) {
             return;
