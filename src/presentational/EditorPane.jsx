@@ -15,15 +15,16 @@ const EditorDocument = Document.extend({
     content: "block+"
 });
 
-// EditorPane.jsx: Hosts the TipTap editor with placeholder, change relay, and highlight overlay.
+// EditorPane.jsx: Hosts the TipTap editor and notifies scroll changes.
 function EditorPane({
     content,
     placeholder,
     onChange,
     highlightRanges,
-    onReady
+    onReady,
+    onScroll = () => {}
 }) {
-    // Function EditorPane receives content, placeholder, onChange, highlightRanges, and onReady props.
+    // Function EditorPane receives content, placeholder, onChange, highlightRanges, onReady, and onScroll props.
     // Ref isSyncingRef stores a boolean to stop sync loops during TipTap updates.
     const isSyncingRef = useRef(false);
     // Ref lastTextRef keeps the previous text value so duplicate updates can be ignored.
@@ -47,6 +48,13 @@ function EditorPane({
 
         lastTextRef.current = nextText;
         onChange({nextText});
+    }
+
+    // Function handleScroll({event}) calls onScroll when the editor wrapper scrolls.
+    function handleScroll({event}) {
+        onScroll({
+            scrollTop: event.currentTarget.scrollTop
+        });
     }
 
     // Constant initialDocContent turns the content prop into TipTap JSON paragraphs for the initial mount.
@@ -159,6 +167,10 @@ function EditorPane({
             w="100%"
             maxW="960px"
             h="100%"
+            overflowY="auto"
+            onScroll={event => {
+                handleScroll({event});
+            }}
         >
             <EditorContent
                 className="proofreader-editor"

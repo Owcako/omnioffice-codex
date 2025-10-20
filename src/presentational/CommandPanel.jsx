@@ -1,8 +1,20 @@
 import {Box, Button, Text, VStack} from "@chakra-ui/react";
 
-// CommandPanel.jsx: Shows the left vertical toolbar.
-function CommandPanel({onProofread, disabled, isLoading, helperText}) {
-    // Function CommandPanel receives onProofread, disabled, isLoading, and helperText props to control the proofread button and helper copy.
+// CommandPanel.jsx: Shows the Tools panel with Proofread and Outline actions.
+function CommandPanel({
+    onProofread,
+    disabled,
+    isLoading,
+    helperText,
+    onOutline,
+    isOutlineView
+}) {
+    // Prop onProofread triggers handleProofread when the Proofread button is clicked.
+    // Prop disabled drives the disabled state of the Proofread button.
+    // Prop isLoading drives the Proofread button spinner.
+    // Prop helperText renders schedule information under the buttons.
+    // Prop onOutline triggers handleOpenOutline when the Outline button is clicked.
+    // Prop isOutlineView disables the Outline button when the Outline panel is already open.
     // VStack wrapper stretches full height with padding to match the outlined left panel.
     return (
         <VStack
@@ -14,7 +26,7 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
             minH="100vh"
         >
             <Box>
-                {/* Heading text displays "Tools" above the button. */}
+                {/* Text heading displays “Tools” above the buttons. */}
                 <Text
                     fontSize="lg"
                     fontWeight="semibold"
@@ -23,7 +35,7 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
                 >
                     Tools
                 </Text>
-                {/* Proofread button uses colorScheme="purple", calls onProofread, respects disabled, and shows the spinner when isLoading is true. */}
+                {/* Button Proofread uses colorScheme purple and calls onProofread when clicked. */}
                 <Button
                     colorScheme="purple"
                     onClick={() => {
@@ -31,11 +43,25 @@ function CommandPanel({onProofread, disabled, isLoading, helperText}) {
                     }}
                     isDisabled={disabled}
                     isLoading={isLoading}
+                    mb={3}
                 >
                     Proofread
                 </Button>
+
+                {/* Button Outline uses bg blue.400, white text, and calls onOutline when clicked. */}
+                <Button
+                    bg="blue.400"
+                    color="white"
+                    _hover={{bg: "blue.500"}}
+                    onClick={() => {
+                        onOutline({});
+                    }}
+                    isDisabled={isOutlineView}
+                >
+                    Outline
+                </Button>
             </Box>
-            {/* Helper text box renders helperText when provided. */}
+            {/* Prop helperText renders schedule information under the buttons. */}
             {helperText && <Box color="gray.500">{helperText}</Box>}
         </VStack>
     );
